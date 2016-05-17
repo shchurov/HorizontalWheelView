@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="HorizontalWheelView">
+        <attr name="maxVisibleMarks" format="integer"/>
+        <attr name="normalColor" format="color"/>
+        <attr name="activeColor" format="color"/>
+    </declare-styleable>
+</resources>

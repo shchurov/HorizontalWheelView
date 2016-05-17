@@ -27,6 +27,8 @@ public class HorizontalWheelView extends View {
     private static final float ZERO_MARK_RELATIVE_HEIGHT = 0.5f;
     private static final float CURSOR_RELATIVE_HEIGHT = 0.69f;
     private static final float TOUCH_ANGLE_MULTIPLIER = 0.002f;
+    private static final float ALPHA_RANGE = 0.7f;
+    private static final float SCALE_RANGE = 0.1f;
     private int MAX_VISIBLE_MARKS;
     private int NORMAL_COLOR;
     private int ACTIVE_COLOR;
@@ -40,6 +42,7 @@ public class HorizontalWheelView extends View {
     private float[] gaps;
     private int[] alphas;
     private float[] scales;
+    private int[] colorSwitches = new int[3];
     private RectF cursorRect = new RectF();
     private double angle;
     private float prevTouchX;
@@ -68,6 +71,16 @@ public class HorizontalWheelView extends View {
         NORMAL_COLOR = a.getColor(R.styleable.HorizontalWheelView_normalColor, DEFAULT_NORMAL_COLOR);
         ACTIVE_COLOR = a.getColor(R.styleable.HorizontalWheelView_activeColor, DEFAULT_ACTIVE_COLOR);
         a.recycle();
+        checkMaxVisibleMarks();
+    }
+
+    private void checkMaxVisibleMarks() {
+        if (MAX_VISIBLE_MARKS < 3) {
+            throw new IllegalArgumentException("maxVisibleMarks must be >= 3");
+        }
+        if (MAX_VISIBLE_MARKS % 2 == 0) {
+            throw new IllegalArgumentException("maxVisibleMarks must be an odd number");
+        }
     }
 
     private void initSizes() {
@@ -109,49 +122,42 @@ public class HorizontalWheelView extends View {
         return true;
     }
 
-    private void setAngle(double angle) {
-        this.angle = simplifyAngle(angle);
+    public void setAngle(double angle) {
+        this.angle = angle % (2 * PI);
         invalidate();
         if (listener != null) {
             listener.onRotationChanged(this.angle);
         }
     }
 
-    private double simplifyAngle(double angle) {
-        if (angle < -PI) {
-            return angle + 2 * PI;
-        } else if (angle > PI) {
-            return angle - 2 * PI;
-        } else {
-            return angle;
-        }
+    public double getAngle() {
+        return angle;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        double angleStep = PI / (MAX_VISIBLE_MARKS - 1);
-        double offset = (2 * PI - angle) % angleStep;
-        setupGaps(angleStep, offset);
-        setupAlphasAndScales(angleStep, offset);
-        int zeroIndex = calcZeroIndex(angleStep);
-        drawNotches(canvas, zeroIndex);
+        double step = PI / (MAX_VISIBLE_MARKS - 1);
+        double offset = (2 * PI - angle) % step;
+        setupGaps(step, offset);
+        setupAlphasAndScales(step, offset);
+        int zeroIndex = calcZeroIndex(step);
+        setupColorSwitches(zeroIndex);
+        drawMarks(canvas, zeroIndex);
         drawCursor(canvas);
     }
 
     private void setupGaps(double step, double offset) {
         float sum = 0;
-        double angle = offset + step / 2;
+        double a = offset + step / 2;
         for (int i = 1; i < gaps.length - 1; i++) {
-            gaps[i] = (float) sin(angle);
+            gaps[i] = (float) sin(a);
             sum += gaps[i];
-            angle += step;
+            a += step;
         }
         gaps[0] = (float) sin(offset / 2);
-        gaps[gaps.length - 1] = (float) sin((PI - (step - offset) / 2));
-        sum += gaps[0] + gaps[gaps.length - 1];
-        if (offset != 0) {
-            gaps[gaps.length - 1] = -1;
-        }
+        float lastGap = (float) sin((PI - (step - offset) / 2));
+        sum += gaps[0] + lastGap;
+        gaps[gaps.length - 1] = offset == 0 ? lastGap : -1;
         float k = getWidth() / sum;
         for (int i = 0; i < gaps.length; i++) {
             if (gaps[i] != -1) {
@@ -164,87 +170,90 @@ public class HorizontalWheelView extends View {
         double angle = offset;
         for (int i = 0; i < MAX_VISIBLE_MARKS; i++) {
             double sin = sin(angle);
-            alphas[i] = (int) (255 * (0.3f + 0.7f * sin));
-            scales[i] = (float) (0.9f + 0.1f * sin);
+            alphas[i] = (int) (255 * (1 - ALPHA_RANGE * (1 - sin)));
+            scales[i] = (float) (1 - SCALE_RANGE * (1 - sin));
             angle += step;
         }
     }
 
     private int calcZeroIndex(double step) {
-        double halfPi = PI / 2;
-        if (angle < -halfPi) {
-            return MAX_VISIBLE_MARKS + 1;
-        }
-        if (angle > halfPi) {
+        double twoPi = 2 * PI;
+        double normalizedAngle = (angle + PI / 2 + twoPi) % twoPi;
+        if (normalizedAngle > PI) {
             return -1;
         }
-        double twoPi = PI * 2;
-        double normalizedAngle = (angle + twoPi) % twoPi;
-        normalizedAngle = (halfPi - normalizedAngle + twoPi) % twoPi;
-        return (int) (normalizedAngle / step);
+        return (int) ((PI - normalizedAngle) / step);
     }
 
-    private void drawNotches(Canvas canvas, int zeroIndex) {
-        float middle = getWidth() / 2;
+    private void setupColorSwitches(int zeroIndex) {
+        double middle = (MAX_VISIBLE_MARKS - 1) / 2d;
+        int middleCeil = (int) Math.ceil(middle);
+        int middleFloor = (int) Math.floor(middle);
+        if (angle > 3 * PI / 2) {
+            colorSwitches[0] = 0;
+            colorSwitches[1] = middleFloor;
+            colorSwitches[2] = zeroIndex;
+        } else if (angle >= 0) {
+            colorSwitches[0] = Math.max(0, zeroIndex);
+            colorSwitches[1] = middleFloor;
+            colorSwitches[2] = -1;
+        } else if (angle < -3 * PI / 2) {
+            colorSwitches[0] = 0;
+            colorSwitches[1] = zeroIndex;
+            colorSwitches[2] = middleCeil;
+        } else if (angle < 0) {
+            colorSwitches[0] = middleCeil;
+            colorSwitches[1] = zeroIndex;
+            colorSwitches[2] = -1;
+        }
+    }
+
+    private void drawMarks(Canvas canvas, int zeroIndex) {
         float x = 0;
-        float halfWidth = NORMAL_MARK_WIDTH / 2;
-        boolean zeroPassed = zeroIndex == -1;
-        boolean middlePassed = false;
+        int color = NORMAL_COLOR;
+        int colorPointer = 0;
         for (int i = 0; i < gaps.length; i++) {
             if (gaps[i] == -1) {
                 break;
             }
             x += gaps[i];
-            if (!middlePassed && x >= middle) {
-                middlePassed = true;
+            while (colorPointer < 3 && i == colorSwitches[colorPointer]) {
+                color = color == NORMAL_COLOR ? ACTIVE_COLOR : NORMAL_COLOR;
+                colorPointer++;
             }
-            float height = NORMAL_MARK_HEIGHT * scales[i];
-            float top = (getHeight() - height) / 2;
-            float bottom = top + height;
             if (i != zeroIndex) {
-                if ((zeroPassed && !middlePassed) || (middlePassed && !zeroPassed)) {
-                    paint.setColor(ACTIVE_COLOR);
-                } else {
-                    paint.setColor(NORMAL_COLOR);
-                }
-                paint.setAlpha(alphas[i]);
+                drawNormalMark(canvas, x, scales[i], alphas[i], color);
             } else {
-                drawZeroNotch(canvas, x, alphas[i]);
-                zeroPassed = true;
-                continue;
+                drawZeroMark(canvas, x, scales[i], alphas[i]);
             }
-            float left = x - halfWidth;
-            float right = left + NORMAL_MARK_WIDTH;
-            canvas.drawRect(left, top, right, bottom, paint);
         }
     }
 
-    private void drawZeroNotch(Canvas canvas, float x, int alpha) {
+    private void drawNormalMark(Canvas canvas, float x, float scale, int alpha, int color) {
+        float height = NORMAL_MARK_HEIGHT * scale;
+        float left = x - NORMAL_MARK_WIDTH / 2;
+        float top = (getHeight() - height) / 2;
+        float right = left + NORMAL_MARK_WIDTH;
+        float bottom = top + height;
+        paint.setColor(color);
+        paint.setAlpha(alpha);
+        canvas.drawRect(left, top, right, bottom, paint);
+    }
+
+    private void drawZeroMark(Canvas canvas, float x, float scale, int alpha) {
+        float height = ZERO_MARK_HEIGHT * scale;
+        float left = x - ZERO_MARK_WIDTH / 2;
+        float top = (getHeight() - height) / 2;
+        float right = left + ZERO_MARK_WIDTH;
+        float bottom = top + height;
         paint.setColor(ACTIVE_COLOR);
         paint.setAlpha(alpha);
-        float left = x - ZERO_MARK_WIDTH / 2;
-        float right = left + ZERO_MARK_WIDTH;
-        float height = ZERO_MARK_HEIGHT;
-        float top = (getHeight() - height) / 2;
-        float bottom = top + height;
         canvas.drawRect(left, top, right, bottom, paint);
     }
 
     private void drawCursor(Canvas canvas) {
         paint.setColor(ACTIVE_COLOR);
         canvas.drawRoundRect(cursorRect, CURSOR_CORNERS_RADIUS, CURSOR_CORNERS_RADIUS, paint);
-    }
-
-    public void rotate(double angle) {
-        setAngle(this.angle + angle);
-    }
-
-    public void reset() {
-        setAngle(0);
-    }
-
-    public double getAngle() {
-        return angle;
     }
 
     public interface Listener {

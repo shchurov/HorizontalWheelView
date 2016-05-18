@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -23,26 +24,27 @@ public class HorizontalWheelView extends View {
     private static final int DP_NORMAL_MARK_WIDTH = 1;
     private static final int DP_ZERO_MARK_WIDTH = 2;
     private static final int DP_CURSOR_WIDTH = 3;
-    private static final float NORMAL_MARK_RELATIVE_HEIGHT = 0.38f;
-    private static final float ZERO_MARK_RELATIVE_HEIGHT = 0.5f;
-    private static final float CURSOR_RELATIVE_HEIGHT = 0.69f;
+    private static final float NORMAL_MARK_RELATIVE_HEIGHT = 0.6f;
+    private static final float ZERO_MARK_RELATIVE_HEIGHT = 0.8f;
+    private static final float CURSOR_RELATIVE_HEIGHT = 1f;
     private static final float TOUCH_ANGLE_MULTIPLIER = 0.002f;
     private static final float ALPHA_RANGE = 0.7f;
     private static final float SCALE_RANGE = 0.1f;
     private int MAX_VISIBLE_MARKS;
     private int NORMAL_COLOR;
     private int ACTIVE_COLOR;
-    private int NORMAL_MARK_WIDTH;
-    private int NORMAL_MARK_HEIGHT;
-    private int ZERO_MARK_WIDTH;
-    private int ZERO_MARK_HEIGHT;
-    private int CURSOR_CORNERS_RADIUS;
 
     private Paint paint = new Paint();
     private float[] gaps;
     private int[] alphas;
     private float[] scales;
     private int[] colorSwitches = new int[3];
+    private int contentHeight;
+    private int normalMarkWidth;
+    private int normalMarkHeight;
+    private int zeroMarkWidth;
+    private int zeroMarkHeight;
+    private int cursorCornersRadius;
     private RectF cursorRect = new RectF();
     private double angle;
     private float prevTouchX;
@@ -52,17 +54,6 @@ public class HorizontalWheelView extends View {
         super(context, attrs);
         readAttrs(attrs);
         init();
-    }
-
-    public void setListener(Listener listener) {
-        this.listener = listener;
-    }
-
-    private void init() {
-        gaps = new float[MAX_VISIBLE_MARKS];
-        alphas = new int[MAX_VISIBLE_MARKS];
-        scales = new float[MAX_VISIBLE_MARKS];
-        initSizes();
     }
 
     private void readAttrs(AttributeSet attrs) {
@@ -83,28 +74,40 @@ public class HorizontalWheelView extends View {
         }
     }
 
-    private void initSizes() {
-        post(new Runnable() {
-            @Override
-            public void run() {
-                NORMAL_MARK_WIDTH = convertToPx(DP_NORMAL_MARK_WIDTH);
-                NORMAL_MARK_HEIGHT = (int) (getHeight() * NORMAL_MARK_RELATIVE_HEIGHT);
-                ZERO_MARK_WIDTH = convertToPx(DP_ZERO_MARK_WIDTH);
-                ZERO_MARK_HEIGHT = (int) (getHeight() * ZERO_MARK_RELATIVE_HEIGHT);
-                CURSOR_CORNERS_RADIUS = convertToPx(DP_CURSOR_CORNERS_RADIUS);
-                int cursorWidth = convertToPx(DP_CURSOR_WIDTH);
-                int cursorHeight = (int) (getHeight() * CURSOR_RELATIVE_HEIGHT);
-                cursorRect.left = (getWidth() - cursorWidth) / 2;
-                cursorRect.right = cursorRect.left + cursorWidth;
-                cursorRect.top = (getHeight() - cursorHeight) / 2;
-                cursorRect.bottom = cursorRect.top + cursorHeight;
-            }
-        });
+    private void init() {
+        gaps = new float[MAX_VISIBLE_MARKS];
+        alphas = new int[MAX_VISIBLE_MARKS];
+        scales = new float[MAX_VISIBLE_MARKS];
+        initDpSizes();
+    }
+
+    private void initDpSizes() {
+        normalMarkWidth = convertToPx(DP_NORMAL_MARK_WIDTH);
+        zeroMarkWidth = convertToPx(DP_ZERO_MARK_WIDTH);
+        cursorCornersRadius = convertToPx(DP_CURSOR_CORNERS_RADIUS);
     }
 
     private int convertToPx(int dp) {
         DisplayMetrics dm = getResources().getDisplayMetrics();
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, dm);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        contentHeight = h - getPaddingTop() - getPaddingBottom();
+        updateSizes();
+    }
+
+
+    private void updateSizes() {
+        normalMarkHeight = (int) (contentHeight * NORMAL_MARK_RELATIVE_HEIGHT);
+        zeroMarkHeight = (int) (contentHeight * ZERO_MARK_RELATIVE_HEIGHT);
+        int cursorHeight = (int) (contentHeight * CURSOR_RELATIVE_HEIGHT);
+        cursorRect.top = getPaddingTop() + (contentHeight - cursorHeight) / 2;
+        cursorRect.bottom = cursorRect.top + cursorHeight;
+        int cursorWidth = convertToPx(DP_CURSOR_WIDTH);
+        cursorRect.left = (getWidth() - cursorWidth) / 2;
+        cursorRect.right = cursorRect.left + cursorWidth;
     }
 
     @Override
@@ -115,23 +118,36 @@ public class HorizontalWheelView extends View {
                 prevTouchX = x;
                 break;
             case MotionEvent.ACTION_MOVE:
-                setAngle(angle + (prevTouchX - x) * TOUCH_ANGLE_MULTIPLIER);
+                setRadiansAngle(angle + (prevTouchX - x) * TOUCH_ANGLE_MULTIPLIER);
                 prevTouchX = x;
                 break;
         }
         return true;
     }
 
-    public void setAngle(double angle) {
-        this.angle = angle % (2 * PI);
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
+
+    public void setRadiansAngle(double radians) {
+        this.angle = radians % (2 * PI);
         invalidate();
         if (listener != null) {
             listener.onRotationChanged(this.angle);
         }
     }
 
-    public double getAngle() {
+    public void setDegreesAngle(double degrees) {
+        double radians = degrees * PI / 180;
+        setRadiansAngle(radians);
+    }
+
+    public double getRadiansAngle() {
         return angle;
+    }
+
+    public double getDegreesAngle() {
+        return getRadiansAngle() * 180 / PI;
     }
 
     @Override
@@ -209,7 +225,7 @@ public class HorizontalWheelView extends View {
     }
 
     private void drawMarks(Canvas canvas, int zeroIndex) {
-        float x = 0;
+        float x = getPaddingLeft();
         int color = NORMAL_COLOR;
         int colorPointer = 0;
         for (int i = 0; i < gaps.length; i++) {
@@ -230,10 +246,10 @@ public class HorizontalWheelView extends View {
     }
 
     private void drawNormalMark(Canvas canvas, float x, float scale, int alpha, int color) {
-        float height = NORMAL_MARK_HEIGHT * scale;
-        float left = x - NORMAL_MARK_WIDTH / 2;
-        float top = (getHeight() - height) / 2;
-        float right = left + NORMAL_MARK_WIDTH;
+        float height = normalMarkHeight * scale;
+        float left = x - normalMarkWidth / 2;
+        float top = getPaddingTop() + (contentHeight - height) / 2;
+        float right = left + normalMarkWidth;
         float bottom = top + height;
         paint.setColor(color);
         paint.setAlpha(alpha);
@@ -241,10 +257,10 @@ public class HorizontalWheelView extends View {
     }
 
     private void drawZeroMark(Canvas canvas, float x, float scale, int alpha) {
-        float height = ZERO_MARK_HEIGHT * scale;
-        float left = x - ZERO_MARK_WIDTH / 2;
-        float top = (getHeight() - height) / 2;
-        float right = left + ZERO_MARK_WIDTH;
+        float height = zeroMarkHeight * scale;
+        float left = x - zeroMarkWidth / 2;
+        float top = getPaddingTop() + (contentHeight - height) / 2;
+        float right = left + zeroMarkWidth;
         float bottom = top + height;
         paint.setColor(ACTIVE_COLOR);
         paint.setAlpha(alpha);
@@ -253,11 +269,27 @@ public class HorizontalWheelView extends View {
 
     private void drawCursor(Canvas canvas) {
         paint.setColor(ACTIVE_COLOR);
-        canvas.drawRoundRect(cursorRect, CURSOR_CORNERS_RADIUS, CURSOR_CORNERS_RADIUS, paint);
+        canvas.drawRoundRect(cursorRect, cursorCornersRadius, cursorCornersRadius, paint);
+    }
+
+    @Override
+    public Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        SavedState ss = new SavedState(superState);
+        ss.angle = angle;
+        return ss;
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+        SavedState ss = (SavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+        angle = ss.angle;
+        invalidate();
     }
 
     public interface Listener {
-        void onRotationChanged(double angle);
+        void onRotationChanged(double radians);
     }
 
 }

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
         android:id="@+id/tvAngle"
@@ -16,8 +17,9 @@
     <com.github.shchurov.horizontalwheelview.HorizontalWheelView
         android:id="@id/horizontalWheelView"
         android:layout_width="200dp"
-        android:layout_height="60dp"
+        android:layout_height="64dp"
         android:layout_centerInParent="true"
+        app:backgroundColor="#20363D"
         android:layout_gravity="center"
         android:paddingBottom="32dp"/>
 

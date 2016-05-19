@@ -20,6 +20,7 @@ public class HorizontalWheelView extends View {
     private static final int DEFAULT_MAX_VISIBLE_MARKS = 21;
     private static final int DEFAULT_NORMAL_COLOR = 0xffffffff;
     private static final int DEFAULT_ACTIVE_COLOR = 0xff54acf0;
+    private static final int DEFAULT_BACKGROUND_COLOR = 0x00000000;
     private static final int DP_CURSOR_CORNERS_RADIUS = 1;
     private static final int DP_NORMAL_MARK_WIDTH = 1;
     private static final int DP_ZERO_MARK_WIDTH = 2;
@@ -33,6 +34,7 @@ public class HorizontalWheelView extends View {
     private int MAX_VISIBLE_MARKS;
     private int NORMAL_COLOR;
     private int ACTIVE_COLOR;
+    private int BACKGROUND_COLOR;
 
     private Paint paint = new Paint();
     private float[] gaps;
@@ -46,6 +48,7 @@ public class HorizontalWheelView extends View {
     private int zeroMarkHeight;
     private int cursorCornersRadius;
     private RectF cursorRect = new RectF();
+    private RectF backgroundRect = new RectF();
     private double angle;
     private float prevTouchX;
     private Listener listener;
@@ -61,6 +64,7 @@ public class HorizontalWheelView extends View {
         MAX_VISIBLE_MARKS = a.getInt(R.styleable.HorizontalWheelView_maxVisibleMarks, DEFAULT_MAX_VISIBLE_MARKS);
         NORMAL_COLOR = a.getColor(R.styleable.HorizontalWheelView_normalColor, DEFAULT_NORMAL_COLOR);
         ACTIVE_COLOR = a.getColor(R.styleable.HorizontalWheelView_activeColor, DEFAULT_ACTIVE_COLOR);
+        BACKGROUND_COLOR = a.getColor(R.styleable.HorizontalWheelView_backgroundColor, DEFAULT_BACKGROUND_COLOR);
         a.recycle();
         checkMaxVisibleMarks();
     }
@@ -108,6 +112,7 @@ public class HorizontalWheelView extends View {
         int cursorWidth = convertToPx(DP_CURSOR_WIDTH);
         cursorRect.left = (getWidth() - cursorWidth) / 2;
         cursorRect.right = cursorRect.left + cursorWidth;
+        backgroundRect.right = getWidth();
     }
 
     @Override
@@ -152,6 +157,7 @@ public class HorizontalWheelView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        drawBackground(canvas);
         double step = PI / (MAX_VISIBLE_MARKS - 1);
         double offset = (2 * PI - angle) % step;
         setupGaps(step, offset);
@@ -160,6 +166,23 @@ public class HorizontalWheelView extends View {
         setupColorSwitches(zeroIndex);
         drawMarks(canvas, zeroIndex);
         drawCursor(canvas);
+    }
+
+    private void drawBackground(Canvas canvas) {
+        if (BACKGROUND_COLOR == 0) {
+            return;
+        }
+        paint.setColor(BACKGROUND_COLOR);
+        float arcRadius = normalMarkHeight * SCALE_RANGE / 2;
+        backgroundRect.top = getPaddingTop() + (contentHeight - normalMarkHeight) / 2;
+        backgroundRect.bottom = backgroundRect.top + 2 * arcRadius;
+        canvas.drawArc(backgroundRect, -180, 180, false, paint);
+        backgroundRect.top = backgroundRect.top + arcRadius;
+        backgroundRect.bottom = backgroundRect.top + normalMarkHeight * (1 - SCALE_RANGE);
+        canvas.drawRect(backgroundRect, paint);
+        backgroundRect.top = backgroundRect.bottom - arcRadius;
+        backgroundRect.bottom = backgroundRect.top + 2 * arcRadius;
+        canvas.drawArc(backgroundRect, 0, 180, false, paint);
     }
 
     private void setupGaps(double step, double offset) {

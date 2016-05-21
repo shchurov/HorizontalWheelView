@@ -17,6 +17,7 @@ class Drawer {
     private static final int DEFAULT_NORMAL_COLOR = 0xffffffff;
     private static final int DEFAULT_ACTIVE_COLOR = 0xff54acf0;
     private static final int DEFAULT_BACKGROUND_COLOR = 0x00000000;
+    private static final boolean DEFAULT_SHOW_ACTIVE_RANGE = true;
     private static final int DP_CURSOR_CORNERS_RADIUS = 1;
     private static final int DP_NORMAL_MARK_WIDTH = 1;
     private static final int DP_ZERO_MARK_WIDTH = 2;
@@ -32,11 +33,12 @@ class Drawer {
     private int maxVisibleMarks;
     private int normalColor;
     private int activeColor;
+    private boolean showActiveRange;
     private int backgroundColor;
     private float[] gaps;
     private int[] alphas;
     private float[] scales;
-    private int[] colorSwitches = new int[3];
+    private int[] colorSwitches = {-1, -1, -1};
     private int viewportHeight;
     private int normalMarkWidth;
     private int normalMarkHeight;
@@ -61,6 +63,7 @@ class Drawer {
         normalColor = a.getColor(R.styleable.HorizontalWheelView_normalColor, DEFAULT_NORMAL_COLOR);
         activeColor = a.getColor(R.styleable.HorizontalWheelView_activeColor, DEFAULT_ACTIVE_COLOR);
         backgroundColor = a.getColor(R.styleable.HorizontalWheelView_backgroundColor, DEFAULT_BACKGROUND_COLOR);
+        showActiveRange = a.getBoolean(R.styleable.HorizontalWheelView_showActiveRange, DEFAULT_SHOW_ACTIVE_RANGE);
         a.recycle();
         validateMaxVisibleMarks(maxVisibleMarks);
     }
@@ -167,6 +170,9 @@ class Drawer {
     }
 
     private void setupColorSwitches(int zeroIndex) {
+        if (!showActiveRange) {
+            return;
+        }
         double middle = (maxVisibleMarks - 1) / 2d;
         int middleCeil = (int) Math.ceil(middle);
         int middleFloor = (int) Math.floor(middle);

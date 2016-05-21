@@ -9,7 +9,7 @@ import android.view.animation.Interpolator;
 class TouchHandler extends GestureDetector.SimpleOnGestureListener {
 
     private static final float SCROLL_ANGLE_MULTIPLIER = 0.002f;
-    private static final float FLING_ANGLE_MULTIPLIER = 0.0002f;
+    private static final float FLING_ANGLE_MULTIPLIER = 0.0003f;
     private static final float FLING_DURATION_MULTIPLIER = 0.2f;
     private static final Interpolator INTERPOLATOR = new DecelerateInterpolator(1.4f);
 

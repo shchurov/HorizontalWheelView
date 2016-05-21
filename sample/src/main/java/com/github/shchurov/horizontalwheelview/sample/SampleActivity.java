@@ -10,33 +10,53 @@ import java.util.Locale;
 
 public class SampleActivity extends Activity {
 
-    private HorizontalWheelView horizontalScrollView;
-    private TextView tvAngle;
+    private HorizontalWheelView horizontalWheelView1;
+    private TextView tvAngle1;
+    private HorizontalWheelView horizontalWheelView2;
+    private TextView tvAngle2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sample);
-        horizontalScrollView = (HorizontalWheelView) findViewById(R.id.horizontalWheelView);
-        tvAngle = (TextView) findViewById(R.id.tvAngle);
-        horizontalScrollView.setListener(new HorizontalWheelView.Listener() {
-            @Override
-            public void onRotationChanged(double radians) {
-                updateAngleText();
-            }
-        });
-        updateAngleText();
+        initViews();
+        setupListeners();
+        updateAngleText(horizontalWheelView1, tvAngle1);
+        updateAngleText(horizontalWheelView2, tvAngle2);
     }
 
-    private void updateAngleText() {
-        String text = String.format(Locale.US, "%.1f°", horizontalScrollView.getDegreesAngle());
+    private void initViews() {
+        horizontalWheelView1 = (HorizontalWheelView) findViewById(R.id.horizontalWheelView1);
+        tvAngle1 = (TextView) findViewById(R.id.tvAngle1);
+        horizontalWheelView2 = (HorizontalWheelView) findViewById(R.id.horizontalWheelView2);
+        tvAngle2 = (TextView) findViewById(R.id.tvAngle2);
+    }
+
+    private void setupListeners() {
+        horizontalWheelView1.setListener(new HorizontalWheelView.Listener() {
+            @Override
+            public void onRotationChanged(double radians) {
+                updateAngleText(horizontalWheelView1, tvAngle1);
+            }
+        });
+        horizontalWheelView2.setListener(new HorizontalWheelView.Listener() {
+            @Override
+            public void onRotationChanged(double radians) {
+                updateAngleText(horizontalWheelView2, tvAngle2);
+            }
+        });
+    }
+
+    private void updateAngleText(HorizontalWheelView horizontalWheelView, TextView tvAngle) {
+        String text = String.format(Locale.US, "%.1f°", horizontalWheelView.getDegreesAngle());
         tvAngle.setText(text);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        updateAngleText();
+        updateAngleText(horizontalWheelView1, tvAngle1);
+        updateAngleText(horizontalWheelView2, tvAngle2);
     }
 
 }

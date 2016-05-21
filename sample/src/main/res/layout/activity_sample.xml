@@ -1,28 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvAngle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/horizontalWheelView"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp"
-        android:textColor="@android:color/white"
-        android:textSize="20sp"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <com.github.shchurov.horizontalwheelview.HorizontalWheelView
-        android:id="@id/horizontalWheelView"
-        android:layout_width="200dp"
-        android:layout_height="64dp"
-        android:layout_centerInParent="true"
-        app:backgroundColor="#3f51b5"
-        app:activeColor="#004d40"
-        app:normalColor="#e0f2f1"
-        android:layout_gravity="center"
-        android:paddingBottom="32dp"/>
+        <TextView
+            android:id="@+id/tvAngle1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/horizontalWheelView1"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
 
-</RelativeLayout>
+        <com.github.shchurov.horizontalwheelview.HorizontalWheelView
+            android:id="@id/horizontalWheelView1"
+            android:layout_width="200dp"
+            android:layout_height="64dp"
+            android:layout_centerInParent="true"
+            android:paddingBottom="32dp"
+            app:activeColor="#004d40"
+            app:normalColor="#e0f2f1"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/tvAngle2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/horizontalWheelView2"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
+
+        <com.github.shchurov.horizontalwheelview.HorizontalWheelView
+            android:id="@id/horizontalWheelView2"
+            android:layout_width="200dp"
+            android:layout_height="64dp"
+            android:layout_centerInParent="true"
+            android:paddingBottom="32dp"
+            app:activeColor="#004d40"
+            app:backgroundColor="#3f51b5"
+            app:normalColor="#e0f2f1"
+            app:showActiveRange="false"/>
+
+    </RelativeLayout>
+
+</LinearLayout>

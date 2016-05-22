@@ -2,8 +2,11 @@ package com.github.shchurov.horizontalwheelview;
 
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -35,6 +38,7 @@ class Drawer {
     private int activeColor;
     private boolean showActiveRange;
     private int backgroundColor;
+    private LinearGradient backgroundGradient;
     private float[] gaps;
     private int[] alphas;
     private float[] scales;
@@ -104,20 +108,39 @@ class Drawer {
         viewportHeight = view.getHeight() - view.getPaddingTop() - view.getPaddingBottom();
         normalMarkHeight = (int) (viewportHeight * NORMAL_MARK_RELATIVE_HEIGHT);
         zeroMarkHeight = (int) (viewportHeight * ZERO_MARK_RELATIVE_HEIGHT);
+        setupCursorRect();
+        setupBackground();
+    }
+
+    private void setupCursorRect() {
         int cursorHeight = (int) (viewportHeight * CURSOR_RELATIVE_HEIGHT);
         cursorRect.top = view.getPaddingTop() + (viewportHeight - cursorHeight) / 2;
         cursorRect.bottom = cursorRect.top + cursorHeight;
         int cursorWidth = convertToPx(DP_CURSOR_WIDTH);
         cursorRect.left = (view.getWidth() - cursorWidth) / 2;
         cursorRect.right = cursorRect.left + cursorWidth;
+    }
+
+    private void setupBackground() {
         backgroundRect.right = view.getWidth();
+        int edgeColor = calcBackgroundEdgeColor();
+        int colors[] = {edgeColor, backgroundColor, backgroundColor, edgeColor};
+        float positions[] = {0f, 0.15f, 0.85f, 1f};
+        backgroundGradient = new LinearGradient(0, 0, view.getWidth(), 0, colors, positions, Shader.TileMode.CLAMP);
+    }
+
+    private int calcBackgroundEdgeColor() {
+        int r = (int) (Color.red(backgroundColor) * 0.5f);
+        int g = (int) (Color.green(backgroundColor) * 0.5f);
+        int b = (int) (Color.blue(backgroundColor) * 0.5f);
+        return Color.rgb(r, g, b);
     }
 
     private void drawBackground(Canvas canvas) {
         if (backgroundColor == 0) {
             return;
         }
-        paint.setColor(backgroundColor);
+        paint.setShader(backgroundGradient);
         float arcRadius = normalMarkHeight * SCALE_RANGE / 2;
         backgroundRect.top = view.getPaddingTop() + (viewportHeight - normalMarkHeight) / 2;
         backgroundRect.bottom = backgroundRect.top + 2 * arcRadius;
@@ -128,6 +151,7 @@ class Drawer {
         backgroundRect.top = backgroundRect.bottom - arcRadius;
         backgroundRect.bottom = backgroundRect.top + 2 * arcRadius;
         canvas.drawArc(backgroundRect, 0, 180, false, paint);
+        paint.setShader(null);
     }
 
     private void setupGaps(double step, double offset) {

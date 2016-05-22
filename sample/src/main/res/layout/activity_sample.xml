@@ -26,8 +26,8 @@
             android:layout_height="64dp"
             android:layout_centerInParent="true"
             android:paddingBottom="32dp"
-            app:activeColor="#004d40"
-            app:normalColor="#e0f2f1"/>
+            app:activeColor="@color/yellow"
+            app:normalColor="@color/white"/>
 
     </RelativeLayout>
 
@@ -52,9 +52,9 @@
             android:layout_height="64dp"
             android:layout_centerInParent="true"
             android:paddingBottom="32dp"
-            app:activeColor="#004d40"
-            app:backgroundColor="#3f51b5"
-            app:normalColor="#e0f2f1"
+            app:activeColor="@color/yellow"
+            app:backgroundColor="@color/grey1"
+            app:normalColor="#c0c0c0"
             app:showActiveRange="false"/>
 
     </RelativeLayout>

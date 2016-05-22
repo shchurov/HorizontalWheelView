@@ -48,7 +48,7 @@ public class SampleActivity extends Activity {
     }
 
     private void updateAngleText(HorizontalWheelView horizontalWheelView, TextView tvAngle) {
-        String text = String.format(Locale.US, "%.1f°", horizontalWheelView.getDegreesAngle());
+        String text = String.format(Locale.US, "%.0f°", horizontalWheelView.getDegreesAngle());
         tvAngle.setText(text);
     }
 

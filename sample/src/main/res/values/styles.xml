@@ -3,9 +3,9 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="ThemeOverlay.AppCompat.Dark">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">@color/grey1</item>
+        <item name="colorPrimaryDark">@color/grey2</item>
+        <item name="colorAccent">@color/yellow</item>
     </style>
 
 </resources>

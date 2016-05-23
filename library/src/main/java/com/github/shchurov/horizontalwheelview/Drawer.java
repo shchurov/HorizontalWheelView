@@ -25,6 +25,7 @@ class Drawer {
     private static final int DP_NORMAL_MARK_WIDTH = 1;
     private static final int DP_ZERO_MARK_WIDTH = 2;
     private static final int DP_CURSOR_WIDTH = 3;
+    private static final int DP_BACKGROUND_PADDING = 1;
     private static final float NORMAL_MARK_RELATIVE_HEIGHT = 0.6f;
     private static final float ZERO_MARK_RELATIVE_HEIGHT = 0.8f;
     private static final float CURSOR_RELATIVE_HEIGHT = 1f;
@@ -49,6 +50,7 @@ class Drawer {
     private int zeroMarkWidth;
     private int zeroMarkHeight;
     private int cursorCornersRadius;
+    private int backgroundPadding;
     private RectF cursorRect = new RectF();
     private RectF backgroundRect = new RectF();
 
@@ -85,6 +87,7 @@ class Drawer {
         normalMarkWidth = convertToPx(DP_NORMAL_MARK_WIDTH);
         zeroMarkWidth = convertToPx(DP_ZERO_MARK_WIDTH);
         cursorCornersRadius = convertToPx(DP_CURSOR_CORNERS_RADIUS);
+        backgroundPadding = convertToPx(DP_BACKGROUND_PADDING);
     }
 
     private int convertToPx(int dp) {
@@ -125,7 +128,7 @@ class Drawer {
         backgroundRect.right = view.getWidth();
         int edgeColor = calcBackgroundEdgeColor();
         int colors[] = {edgeColor, backgroundColor, backgroundColor, edgeColor};
-        float positions[] = {0f, 0.15f, 0.85f, 1f};
+        float positions[] = {0f, 0.2f, 0.8f, 1f};
         backgroundGradient = new LinearGradient(0, 0, view.getWidth(), 0, colors, positions, Shader.TileMode.CLAMP);
     }
 
@@ -141,16 +144,22 @@ class Drawer {
             return;
         }
         paint.setShader(backgroundGradient);
+        int height = normalMarkHeight + 2 * backgroundPadding;
+        float top = view.getPaddingTop() + (viewportHeight - height) / 2;
         float arcRadius = normalMarkHeight * SCALE_RANGE / 2;
-        backgroundRect.top = view.getPaddingTop() + (viewportHeight - normalMarkHeight) / 2;
-        backgroundRect.bottom = backgroundRect.top + 2 * arcRadius;
+
+        backgroundRect.top = top;
+        backgroundRect.bottom = top + 2 * arcRadius;
         canvas.drawArc(backgroundRect, -180, 180, false, paint);
-        backgroundRect.top = backgroundRect.top + arcRadius;
-        backgroundRect.bottom = backgroundRect.top + normalMarkHeight * (1 - SCALE_RANGE);
-        canvas.drawRect(backgroundRect, paint);
-        backgroundRect.top = backgroundRect.bottom - arcRadius;
-        backgroundRect.bottom = backgroundRect.top + 2 * arcRadius;
+
+        backgroundRect.bottom = top + height;
+        backgroundRect.top = backgroundRect.bottom - 2 * arcRadius;
         canvas.drawArc(backgroundRect, 0, 180, false, paint);
+
+        backgroundRect.top = top + arcRadius - 1;
+        backgroundRect.bottom = top + height - arcRadius + 1;
+        canvas.drawRect(backgroundRect, paint);
+
         paint.setShader(null);
     }
 

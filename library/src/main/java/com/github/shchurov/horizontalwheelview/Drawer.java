@@ -2,11 +2,8 @@ package com.github.shchurov.horizontalwheelview;
 
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -19,13 +16,11 @@ class Drawer {
     private static final int DEFAULT_MAX_VISIBLE_MARKS = 21;
     private static final int DEFAULT_NORMAL_COLOR = 0xffffffff;
     private static final int DEFAULT_ACTIVE_COLOR = 0xff54acf0;
-    private static final int DEFAULT_BACKGROUND_COLOR = 0x00000000;
     private static final boolean DEFAULT_SHOW_ACTIVE_RANGE = true;
     private static final int DP_CURSOR_CORNERS_RADIUS = 1;
     private static final int DP_NORMAL_MARK_WIDTH = 1;
     private static final int DP_ZERO_MARK_WIDTH = 2;
     private static final int DP_CURSOR_WIDTH = 3;
-    private static final int DP_BACKGROUND_PADDING = 1;
     private static final float NORMAL_MARK_RELATIVE_HEIGHT = 0.6f;
     private static final float ZERO_MARK_RELATIVE_HEIGHT = 0.8f;
     private static final float CURSOR_RELATIVE_HEIGHT = 1f;
@@ -38,8 +33,6 @@ class Drawer {
     private int normalColor;
     private int activeColor;
     private boolean showActiveRange;
-    private int backgroundColor;
-    private LinearGradient backgroundGradient;
     private float[] gaps;
     private int[] alphas;
     private float[] scales;
@@ -50,9 +43,7 @@ class Drawer {
     private int zeroMarkWidth;
     private int zeroMarkHeight;
     private int cursorCornersRadius;
-    private int backgroundPadding;
     private RectF cursorRect = new RectF();
-    private RectF backgroundRect = new RectF();
 
     Drawer(HorizontalWheelView view, AttributeSet attrs) {
         this.view = view;
@@ -68,7 +59,6 @@ class Drawer {
         maxVisibleMarks = a.getInt(R.styleable.HorizontalWheelView_maxVisibleMarks, DEFAULT_MAX_VISIBLE_MARKS);
         normalColor = a.getColor(R.styleable.HorizontalWheelView_normalColor, DEFAULT_NORMAL_COLOR);
         activeColor = a.getColor(R.styleable.HorizontalWheelView_activeColor, DEFAULT_ACTIVE_COLOR);
-        backgroundColor = a.getColor(R.styleable.HorizontalWheelView_backgroundColor, DEFAULT_BACKGROUND_COLOR);
         showActiveRange = a.getBoolean(R.styleable.HorizontalWheelView_showActiveRange, DEFAULT_SHOW_ACTIVE_RANGE);
         a.recycle();
         validateMaxVisibleMarks(maxVisibleMarks);
@@ -87,7 +77,6 @@ class Drawer {
         normalMarkWidth = convertToPx(DP_NORMAL_MARK_WIDTH);
         zeroMarkWidth = convertToPx(DP_ZERO_MARK_WIDTH);
         cursorCornersRadius = convertToPx(DP_CURSOR_CORNERS_RADIUS);
-        backgroundPadding = convertToPx(DP_BACKGROUND_PADDING);
     }
 
     private int convertToPx(int dp) {
@@ -96,7 +85,6 @@ class Drawer {
     }
 
     void onDraw(Canvas canvas) {
-        drawBackground(canvas);
         double step = PI / (maxVisibleMarks - 1);
         double offset = (2 * PI - view.getRadiansAngle()) % step;
         setupGaps(step, offset);
@@ -112,7 +100,6 @@ class Drawer {
         normalMarkHeight = (int) (viewportHeight * NORMAL_MARK_RELATIVE_HEIGHT);
         zeroMarkHeight = (int) (viewportHeight * ZERO_MARK_RELATIVE_HEIGHT);
         setupCursorRect();
-        setupBackground();
     }
 
     private void setupCursorRect() {
@@ -122,45 +109,6 @@ class Drawer {
         int cursorWidth = convertToPx(DP_CURSOR_WIDTH);
         cursorRect.left = (view.getWidth() - cursorWidth) / 2;
         cursorRect.right = cursorRect.left + cursorWidth;
-    }
-
-    private void setupBackground() {
-        backgroundRect.right = view.getWidth();
-        int edgeColor = calcBackgroundEdgeColor();
-        int colors[] = {edgeColor, backgroundColor, backgroundColor, edgeColor};
-        float positions[] = {0f, 0.2f, 0.8f, 1f};
-        backgroundGradient = new LinearGradient(0, 0, view.getWidth(), 0, colors, positions, Shader.TileMode.CLAMP);
-    }
-
-    private int calcBackgroundEdgeColor() {
-        int r = (int) (Color.red(backgroundColor) * 0.5f);
-        int g = (int) (Color.green(backgroundColor) * 0.5f);
-        int b = (int) (Color.blue(backgroundColor) * 0.5f);
-        return Color.rgb(r, g, b);
-    }
-
-    private void drawBackground(Canvas canvas) {
-        if (backgroundColor == 0) {
-            return;
-        }
-        paint.setShader(backgroundGradient);
-        int height = normalMarkHeight + 2 * backgroundPadding;
-        float top = view.getPaddingTop() + (viewportHeight - height) / 2;
-        float arcRadius = normalMarkHeight * SCALE_RANGE / 2;
-
-        backgroundRect.top = top;
-        backgroundRect.bottom = top + 2 * arcRadius;
-        canvas.drawArc(backgroundRect, -180, 180, false, paint);
-
-        backgroundRect.bottom = top + height;
-        backgroundRect.top = backgroundRect.bottom - 2 * arcRadius;
-        canvas.drawArc(backgroundRect, 0, 180, false, paint);
-
-        backgroundRect.top = top + arcRadius - 1;
-        backgroundRect.bottom = top + height - arcRadius + 1;
-        canvas.drawRect(backgroundRect, paint);
-
-        paint.setShader(null);
     }
 
     private void setupGaps(double step, double offset) {

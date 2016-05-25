@@ -53,8 +53,7 @@
             android:layout_centerInParent="true"
             android:paddingBottom="32dp"
             app:activeColor="@color/yellow"
-            app:backgroundColor="@color/grey1"
-            app:normalColor="#c0c0c0"
+            app:normalColor="@color/white"
             app:showActiveRange="false"/>
 
     </RelativeLayout>

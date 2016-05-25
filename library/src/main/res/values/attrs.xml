@@ -4,7 +4,6 @@
         <attr name="maxVisibleMarks" format="integer"/>
         <attr name="normalColor" format="color"/>
         <attr name="activeColor" format="color"/>
-        <attr name="backgroundColor" format="color"/>
         <attr name="showActiveRange" format="boolean"/>
     </declare-styleable>
 </resources>

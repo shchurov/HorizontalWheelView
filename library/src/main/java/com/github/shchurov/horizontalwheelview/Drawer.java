@@ -2,6 +2,7 @@ package com.github.shchurov.horizontalwheelview;
 
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
@@ -24,7 +25,7 @@ class Drawer {
     private static final float NORMAL_MARK_RELATIVE_HEIGHT = 0.6f;
     private static final float ZERO_MARK_RELATIVE_HEIGHT = 0.8f;
     private static final float CURSOR_RELATIVE_HEIGHT = 1f;
-    private static final float ALPHA_RANGE = 0.7f;
+    private static final float SHADE_RANGE = 0.7f;
     private static final float SCALE_RANGE = 0.1f;
 
     private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -34,7 +35,7 @@ class Drawer {
     private int activeColor;
     private boolean showActiveRange;
     private float[] gaps;
-    private int[] alphas;
+    private float[] shades;
     private float[] scales;
     private int[] colorSwitches = {-1, -1, -1};
     private int viewportHeight;
@@ -49,7 +50,7 @@ class Drawer {
         this.view = view;
         readAttrs(attrs);
         gaps = new float[maxVisibleMarks];
-        alphas = new int[maxVisibleMarks];
+        shades = new float[maxVisibleMarks];
         scales = new float[maxVisibleMarks];
         initDpSizes();
     }
@@ -88,7 +89,7 @@ class Drawer {
         double step = PI / (maxVisibleMarks - 1);
         double offset = (2 * PI - view.getRadiansAngle()) % step;
         setupGaps(step, offset);
-        setupAlphasAndScales(step, offset);
+        setupShadesAndScales(step, offset);
         int zeroIndex = calcZeroIndex(step);
         setupColorSwitches(zeroIndex);
         drawMarks(canvas, zeroIndex);
@@ -131,11 +132,11 @@ class Drawer {
         }
     }
 
-    private void setupAlphasAndScales(double step, double offset) {
+    private void setupShadesAndScales(double step, double offset) {
         double angle = offset;
         for (int i = 0; i < maxVisibleMarks; i++) {
             double sin = sin(angle);
-            alphas[i] = (int) (255 * (1 - ALPHA_RANGE * (1 - sin)));
+            shades[i] = (float) (1 - SHADE_RANGE * (1 - sin));
             scales[i] = (float) (1 - SCALE_RANGE * (1 - sin));
             angle += step;
         }
@@ -191,32 +192,37 @@ class Drawer {
                 colorPointer++;
             }
             if (i != zeroIndex) {
-                drawNormalMark(canvas, x, scales[i], alphas[i], color);
+                drawNormalMark(canvas, x, scales[i], shades[i], color);
             } else {
-                drawZeroMark(canvas, x, scales[i], alphas[i]);
+                drawZeroMark(canvas, x, scales[i], shades[i]);
             }
         }
     }
 
-    private void drawNormalMark(Canvas canvas, float x, float scale, int alpha, int color) {
+    private void drawNormalMark(Canvas canvas, float x, float scale, float shade, int color) {
         float height = normalMarkHeight * scale;
         float left = x - normalMarkWidth / 2;
         float top = view.getPaddingTop() + (viewportHeight - height) / 2;
         float right = left + normalMarkWidth;
         float bottom = top + height;
-        paint.setColor(color);
-        paint.setAlpha(alpha);
+        paint.setColor(applyShade(color, shade));
         canvas.drawRect(left, top, right, bottom, paint);
     }
 
-    private void drawZeroMark(Canvas canvas, float x, float scale, int alpha) {
+    private int applyShade(int color, float shade) {
+        int r = (int) (Color.red(color) * shade);
+        int g = (int) (Color.green(color) * shade);
+        int b = (int) (Color.blue(color) * shade);
+        return Color.rgb(r, g, b);
+    }
+
+    private void drawZeroMark(Canvas canvas, float x, float scale, float shade) {
         float height = zeroMarkHeight * scale;
         float left = x - zeroMarkWidth / 2;
         float top = view.getPaddingTop() + (viewportHeight - height) / 2;
         float right = left + zeroMarkWidth;
         float bottom = top + height;
-        paint.setColor(activeColor);
-        paint.setAlpha(alpha);
+        paint.setColor(applyShade(activeColor, shade));
         canvas.drawRect(left, top, right, bottom, paint);
     }
 

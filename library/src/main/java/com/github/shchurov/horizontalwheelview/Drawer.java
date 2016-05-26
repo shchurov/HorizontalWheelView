@@ -18,6 +18,7 @@ class Drawer {
     private static final int DEFAULT_NORMAL_COLOR = 0xffffffff;
     private static final int DEFAULT_ACTIVE_COLOR = 0xff54acf0;
     private static final boolean DEFAULT_SHOW_ACTIVE_RANGE = true;
+    private static final boolean DEFAULT_SHOW_JOIN_MARKS = false;
     private static final int DP_CURSOR_CORNERS_RADIUS = 1;
     private static final int DP_NORMAL_MARK_WIDTH = 1;
     private static final int DP_ZERO_MARK_WIDTH = 2;
@@ -34,6 +35,7 @@ class Drawer {
     private int normalColor;
     private int activeColor;
     private boolean showActiveRange;
+    private boolean joinMarks;
     private float[] gaps;
     private float[] shades;
     private float[] scales;
@@ -61,6 +63,7 @@ class Drawer {
         normalColor = a.getColor(R.styleable.HorizontalWheelView_normalColor, DEFAULT_NORMAL_COLOR);
         activeColor = a.getColor(R.styleable.HorizontalWheelView_activeColor, DEFAULT_ACTIVE_COLOR);
         showActiveRange = a.getBoolean(R.styleable.HorizontalWheelView_showActiveRange, DEFAULT_SHOW_ACTIVE_RANGE);
+        joinMarks = a.getBoolean(R.styleable.HorizontalWheelView_joinMarks, DEFAULT_SHOW_JOIN_MARKS);
         a.recycle();
         validateMaxVisibleMarks(maxVisibleMarks);
     }
@@ -201,12 +204,11 @@ class Drawer {
 
     private void drawNormalMark(Canvas canvas, float x, float scale, float shade, int color) {
         float height = normalMarkHeight * scale;
-        float left = x - normalMarkWidth / 2;
         float top = view.getPaddingTop() + (viewportHeight - height) / 2;
-        float right = left + normalMarkWidth;
         float bottom = top + height;
+        paint.setStrokeWidth(normalMarkWidth);
         paint.setColor(applyShade(color, shade));
-        canvas.drawRect(left, top, right, bottom, paint);
+        canvas.drawLine(x, top, x, bottom, paint);
     }
 
     private int applyShade(int color, float shade) {
@@ -218,15 +220,15 @@ class Drawer {
 
     private void drawZeroMark(Canvas canvas, float x, float scale, float shade) {
         float height = zeroMarkHeight * scale;
-        float left = x - zeroMarkWidth / 2;
         float top = view.getPaddingTop() + (viewportHeight - height) / 2;
-        float right = left + zeroMarkWidth;
         float bottom = top + height;
+        paint.setStrokeWidth(zeroMarkWidth);
         paint.setColor(applyShade(activeColor, shade));
-        canvas.drawRect(left, top, right, bottom, paint);
+        canvas.drawLine(x, top, x, bottom, paint);
     }
 
     private void drawCursor(Canvas canvas) {
+        paint.setStrokeWidth(0);
         paint.setColor(activeColor);
         canvas.drawRoundRect(cursorRect, cursorCornersRadius, cursorCornersRadius, paint);
     }

@@ -52,9 +52,11 @@
             android:layout_height="64dp"
             android:layout_centerInParent="true"
             android:paddingBottom="32dp"
+            app:maxVisibleMarks="13"
             app:activeColor="@color/yellow"
             app:normalColor="@color/white"
-            app:showActiveRange="false"/>
+            app:joinMarks="true"
+            app:showActiveRange="true"/>
 
     </RelativeLayout>
 

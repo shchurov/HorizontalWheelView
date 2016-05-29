@@ -5,6 +5,5 @@
         <attr name="normalColor" format="color"/>
         <attr name="activeColor" format="color"/>
         <attr name="showActiveRange" format="boolean"/>
-        <attr name="joinMarks" format="boolean"/>
     </declare-styleable>
 </resources>

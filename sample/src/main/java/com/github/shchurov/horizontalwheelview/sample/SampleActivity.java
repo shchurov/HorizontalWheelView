@@ -10,10 +10,8 @@ import java.util.Locale;
 
 public class SampleActivity extends Activity {
 
-    private HorizontalWheelView horizontalWheelView1;
-    private TextView tvAngle1;
-    private HorizontalWheelView horizontalWheelView2;
-    private TextView tvAngle2;
+    private HorizontalWheelView horizontalWheelView;
+    private TextView tvAngle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,28 +19,19 @@ public class SampleActivity extends Activity {
         setContentView(R.layout.activity_sample);
         initViews();
         setupListeners();
-        updateAngleText(horizontalWheelView1, tvAngle1);
-        updateAngleText(horizontalWheelView2, tvAngle2);
+        updateAngleText(horizontalWheelView, tvAngle);
     }
 
     private void initViews() {
-        horizontalWheelView1 = (HorizontalWheelView) findViewById(R.id.horizontalWheelView1);
-        tvAngle1 = (TextView) findViewById(R.id.tvAngle1);
-        horizontalWheelView2 = (HorizontalWheelView) findViewById(R.id.horizontalWheelView2);
-        tvAngle2 = (TextView) findViewById(R.id.tvAngle2);
+        horizontalWheelView = (HorizontalWheelView) findViewById(R.id.horizontalWheelView);
+        tvAngle = (TextView) findViewById(R.id.tvAngle);
     }
 
     private void setupListeners() {
-        horizontalWheelView1.setListener(new HorizontalWheelView.Listener() {
+        horizontalWheelView.setListener(new HorizontalWheelView.Listener() {
             @Override
             public void onRotationChanged(double radians) {
-                updateAngleText(horizontalWheelView1, tvAngle1);
-            }
-        });
-        horizontalWheelView2.setListener(new HorizontalWheelView.Listener() {
-            @Override
-            public void onRotationChanged(double radians) {
-                updateAngleText(horizontalWheelView2, tvAngle2);
+                updateAngleText(horizontalWheelView, tvAngle);
             }
         });
     }
@@ -55,8 +44,7 @@ public class SampleActivity extends Activity {
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        updateAngleText(horizontalWheelView1, tvAngle1);
-        updateAngleText(horizontalWheelView2, tvAngle2);
+        updateAngleText(horizontalWheelView, tvAngle);
     }
 
 }

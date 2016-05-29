@@ -7,10 +7,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
-
-import java.util.Arrays;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.sin;
@@ -21,7 +18,6 @@ class Drawer {
     private static final int DEFAULT_NORMAL_COLOR = 0xffffffff;
     private static final int DEFAULT_ACTIVE_COLOR = 0xff54acf0;
     private static final boolean DEFAULT_SHOW_ACTIVE_RANGE = true;
-    private static final boolean DEFAULT_SHOW_JOIN_MARKS = false;
     private static final int DP_CURSOR_CORNERS_RADIUS = 1;
     private static final int DP_NORMAL_MARK_WIDTH = 1;
     private static final int DP_ZERO_MARK_WIDTH = 2;
@@ -38,7 +34,6 @@ class Drawer {
     private int normalColor;
     private int activeColor;
     private boolean showActiveRange;
-    private boolean joinMarks;
     private float[] gaps;
     private float[] shades;
     private float[] scales;
@@ -66,7 +61,6 @@ class Drawer {
         normalColor = a.getColor(R.styleable.HorizontalWheelView_normalColor, DEFAULT_NORMAL_COLOR);
         activeColor = a.getColor(R.styleable.HorizontalWheelView_activeColor, DEFAULT_ACTIVE_COLOR);
         showActiveRange = a.getBoolean(R.styleable.HorizontalWheelView_showActiveRange, DEFAULT_SHOW_ACTIVE_RANGE);
-        joinMarks = a.getBoolean(R.styleable.HorizontalWheelView_joinMarks, DEFAULT_SHOW_JOIN_MARKS);
         a.recycle();
         validateMaxVisibleMarks(maxVisibleMarks);
     }
@@ -176,29 +170,24 @@ class Drawer {
             colorSwitches[2] = -1;
         } else if (angle < -3 * PI / 2) {
             colorSwitches[0] = 0;
-            colorSwitches[1] = zeroIndex;
+            colorSwitches[1] = zeroIndex + 1;
             colorSwitches[2] = middleCeil;
         } else if (angle < 0) {
             colorSwitches[0] = middleCeil;
             colorSwitches[1] = zeroIndex + 1;
             colorSwitches[2] = -1;
         }
-        Log.d("OLOLO", Arrays.toString(colorSwitches));
     }
 
     private void drawMarks(Canvas canvas, int zeroIndex) {
         float x = view.getPaddingLeft();
         int color = normalColor;
         int colorPointer = 0;
-        float prevX = 0;
-        float prevScale = 0;
-        float prevShade = 0;
         for (int i = 0; i < gaps.length; i++) {
             if (gaps[i] == -1) {
                 break;
             }
             x += gaps[i];
-            int prevColor = color;
             while (colorPointer < 3 && i == colorSwitches[colorPointer]) {
                 color = color == normalColor ? activeColor : normalColor;
                 colorPointer++;
@@ -207,14 +196,6 @@ class Drawer {
                 drawNormalMark(canvas, x, scales[i], shades[i], color);
             } else {
                 drawZeroMark(canvas, x, scales[i], shades[i]);
-            }
-            if (joinMarks) {
-                if (i > 0) {
-                    joinMarks(canvas, prevX, x, prevScale, scales[i], prevShade, shades[i], prevColor, color);
-                }
-                prevX = x;
-                prevScale = scales[i];
-                prevShade = shades[i];
             }
         }
     }
@@ -242,23 +223,6 @@ class Drawer {
         paint.setStrokeWidth(zeroMarkWidth);
         paint.setColor(applyShade(activeColor, shade));
         canvas.drawLine(x, top, x, bottom, paint);
-    }
-
-    private void joinMarks(Canvas canvas, float x1, float x2, float scale1, float scale2, float shade1, float shade2,
-            int color1, int color2) {
-        float height1 = zeroMarkHeight * scale1;
-        float height2 = zeroMarkHeight * scale2;
-        float top1 = view.getPaddingTop() + (viewportHeight - height1) / 2;
-        float top2 = view.getPaddingTop() + (viewportHeight - height2) / 2;
-        float shade = (shade1 + shade2) / 2;
-        float middle = (x1 + x2) / 2;
-        paint.setStrokeWidth(normalMarkWidth);
-        paint.setColor(applyShade(color1, shade));
-        canvas.drawLine(x1, top1, middle, top2, paint);
-        canvas.drawLine(x1, top1 + height1, middle, top2 + height2, paint);
-        paint.setColor(applyShade(color2, shade));
-        canvas.drawLine(middle, top1, x2, top2, paint);
-        canvas.drawLine(middle, top1 + height1, x2, top2 + height2, paint);
     }
 
     private void drawCursor(Canvas canvas) {

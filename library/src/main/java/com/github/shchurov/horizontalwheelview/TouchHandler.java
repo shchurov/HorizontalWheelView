@@ -17,7 +17,7 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
     private GestureDetector gestureDetector;
     private ValueAnimator scrollAnimator;
 
-    public TouchHandler(HorizontalWheelView view) {
+    TouchHandler(HorizontalWheelView view) {
         this.view = view;
         gestureDetector = new GestureDetector(view.getContext(), this);
     }

@@ -11,18 +11,25 @@
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
+        <ImageView
+            android:id="@+id/ivRocket"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="32dp"
+            android:src="@drawable/asset_rocket"/>
+
         <TextView
             android:id="@+id/tvAngle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
             android:textColor="@android:color/white"
-            android:textSize="20sp"/>
+            android:textSize="14sp"/>
 
         <com.github.shchurov.horizontalwheelview.HorizontalWheelView
             android:id="@+id/horizontalWheelView"
             android:layout_width="200dp"
             android:layout_height="64dp"
+            android:layout_marginTop="16dp"
             android:paddingBottom="32dp"
             app:activeColor="@color/yellow"
             app:normalColor="@color/white"/>

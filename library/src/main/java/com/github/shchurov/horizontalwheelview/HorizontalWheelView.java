@@ -11,6 +11,9 @@ import static java.lang.Math.PI;
 
 public class HorizontalWheelView extends View {
 
+    private static final int DP_DEFAULT_WIDTH = 200;
+    private static final int DP_DEFAULT_HEIGHT = 32;
+
     private Drawer drawer;
     private TouchHandler touchHandler;
     private double angle;
@@ -48,13 +51,32 @@ public class HorizontalWheelView extends View {
     }
 
     @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return touchHandler.onTouchEvent(event);
+    }
+
+    @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         drawer.onSizeChanged();
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return touchHandler.onTouchEvent(event);
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int resolvedWidthSpec = resolveMeasureSpec(widthMeasureSpec, DP_DEFAULT_WIDTH);
+        int resolvedHeightSpec = resolveMeasureSpec(heightMeasureSpec, DP_DEFAULT_HEIGHT);
+        super.onMeasure(resolvedWidthSpec, resolvedHeightSpec);
+    }
+
+    private int resolveMeasureSpec(int measureSpec, int dpDefault) {
+        int mode = MeasureSpec.getMode(measureSpec);
+        if (mode == MeasureSpec.EXACTLY) {
+            return measureSpec;
+        }
+        int defaultSize = Utils.convertToPx(dpDefault, getResources());
+        if (mode == MeasureSpec.AT_MOST) {
+            defaultSize = Math.min(defaultSize, MeasureSpec.getSize(measureSpec));
+        }
+        return MeasureSpec.makeMeasureSpec(defaultSize, MeasureSpec.EXACTLY);
     }
 
     @Override

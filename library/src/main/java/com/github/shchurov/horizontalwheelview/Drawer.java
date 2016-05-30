@@ -6,8 +6,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.sin;
@@ -81,8 +79,7 @@ class Drawer {
     }
 
     private int convertToPx(int dp) {
-        DisplayMetrics dm = view.getResources().getDisplayMetrics();
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, dm);
+        return Utils.convertToPx(dp, view.getResources());
     }
 
     void onDraw(Canvas canvas) {

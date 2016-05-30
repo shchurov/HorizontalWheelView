@@ -2,7 +2,7 @@
 Custom view for user input that models horizontal wheel controller.
 ![preview](https://i.imgur.com/wWYbR8R.png)
 
-![demo gif](http://i.imgur.com/O7cK7Rc.gif)
+![demo gif](http://i.giphy.com/vH1qSxcwBBOiQ.gif)
 
 API
 -------

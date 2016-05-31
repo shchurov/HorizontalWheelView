@@ -4,6 +4,22 @@ Custom view for user input that models horizontal wheel controller.
 
 ![demo gif](http://i.giphy.com/vH1qSxcwBBOiQ.gif)
 
+Integration
+-------
+
+Add jitpack.io repository to your root build.gradle:
+```groovy
+allprojects {
+ repositories {
+    jcenter()
+    maven { url "https://jitpack.io" }
+ }
+}
+```
+Add the dependency to your module build.gradle:
+
+`compile 'com.github.shchurov:horizontalwheelview:0.9.1'`
+
 API
 -------
 

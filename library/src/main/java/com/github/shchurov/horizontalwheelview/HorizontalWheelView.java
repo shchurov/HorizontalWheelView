@@ -14,6 +14,10 @@ public class HorizontalWheelView extends View {
     private static final int DP_DEFAULT_WIDTH = 200;
     private static final int DP_DEFAULT_HEIGHT = 32;
 
+    public static final int SCROLL_STATE_IDLE = 0;
+    public static final int SCROLL_STATE_DRAGGING = 1;
+    public static final int SCROLL_STATE_SETTLING = 2;
+
     private Drawer drawer;
     private TouchHandler touchHandler;
     private double angle;
@@ -27,6 +31,7 @@ public class HorizontalWheelView extends View {
 
     public void setListener(Listener listener) {
         this.listener = listener;
+        touchHandler.setListener(listener);
     }
 
     public void setRadiansAngle(double radians) {
@@ -100,8 +105,12 @@ public class HorizontalWheelView extends View {
         invalidate();
     }
 
-    public interface Listener {
-        void onRotationChanged(double radians);
+    public static class Listener {
+        public void onRotationChanged(double radians) {
+        }
+
+        public void onScrollStateChanged(int state) {
+        }
     }
 
 }

@@ -18,7 +18,7 @@ allprojects {
 ```
 Add the dependency to your module build.gradle:
 
-`compile 'com.github.shchurov:horizontalwheelview:0.9.1'`
+`compile 'com.github.shchurov:horizontalwheelview:0.9.3'`
 
 API
 -------

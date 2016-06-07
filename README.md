@@ -18,7 +18,7 @@ allprojects {
 ```
 Add the dependency to your module build.gradle:
 
-`compile 'com.github.shchurov:horizontalwheelview:0.9.2'`
+`compile 'com.github.shchurov:horizontalwheelview:0.9.3'`
 
 API
 -------
@@ -28,8 +28,10 @@ Methods:
 void setListener(Listener listener)
 void setRadiansAngle(double radians)
 void setDegreesAngle(double degrees)
+void setCompleteTurnFraction(double fraction)
 double getRadiansAngle()
 double getDegreesAngle()
+double getCompleteTurnFraction()
 ```
 
 XML-attributes:

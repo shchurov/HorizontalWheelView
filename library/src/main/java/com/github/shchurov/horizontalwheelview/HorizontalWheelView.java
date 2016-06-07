@@ -47,12 +47,21 @@ public class HorizontalWheelView extends View {
         setRadiansAngle(radians);
     }
 
+    public void setCompleteTurnFraction(double fraction) {
+        double radians = fraction * 2 * PI;
+        setRadiansAngle(radians);
+    }
+
     public double getRadiansAngle() {
         return angle;
     }
 
     public double getDegreesAngle() {
         return getRadiansAngle() * 180 / PI;
+    }
+
+    public double getCompleteTurnFraction() {
+        return getRadiansAngle() / (2 * PI);
     }
 
     @Override

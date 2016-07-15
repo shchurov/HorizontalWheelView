@@ -21,6 +21,7 @@ public class HorizontalWheelView extends View {
     private Drawer drawer;
     private TouchHandler touchHandler;
     private double angle;
+    private boolean onlyPositiveValues;
     private Listener listener;
 
     public HorizontalWheelView(Context context, AttributeSet attrs) {
@@ -35,7 +36,10 @@ public class HorizontalWheelView extends View {
     }
 
     public void setRadiansAngle(double radians) {
-        this.angle = radians % (2 * PI);
+        angle = radians % (2 * PI);
+        if (onlyPositiveValues && angle < 0) {
+            angle += 2 * PI;
+        }
         invalidate();
         if (listener != null) {
             listener.onRotationChanged(this.angle);
@@ -62,6 +66,10 @@ public class HorizontalWheelView extends View {
 
     public double getCompleteTurnFraction() {
         return getRadiansAngle() / (2 * PI);
+    }
+
+    public void setOnlyPositiveValues(boolean onlyPositiveValues) {
+        this.onlyPositiveValues = onlyPositiveValues;
     }
 
     @Override

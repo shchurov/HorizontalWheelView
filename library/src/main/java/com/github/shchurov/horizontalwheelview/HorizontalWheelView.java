@@ -72,6 +72,11 @@ public class HorizontalWheelView extends View {
         this.onlyPositiveValues = onlyPositiveValues;
     }
 
+    public void setMarksCount(int marksCount) {
+        drawer.setMarksCount(marksCount);
+        invalidate();
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return touchHandler.onTouchEvent(event);

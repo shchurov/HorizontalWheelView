@@ -12,7 +12,7 @@ import static java.lang.Math.sin;
 
 class Drawer {
 
-    private static final int DEFAULT_MAX_VISIBLE_MARKS = 21;
+    private static final int DEFAULT_MARKS_COUNT = 40;
     private static final int DEFAULT_NORMAL_COLOR = 0xffffffff;
     private static final int DEFAULT_ACTIVE_COLOR = 0xff54acf0;
     private static final boolean DEFAULT_SHOW_ACTIVE_RANGE = true;
@@ -28,7 +28,7 @@ class Drawer {
 
     private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private HorizontalWheelView view;
-    private int maxVisibleMarks;
+    private int marksCount;
     private int normalColor;
     private int activeColor;
     private boolean showActiveRange;
@@ -43,33 +43,22 @@ class Drawer {
     private int zeroMarkHeight;
     private int cursorCornersRadius;
     private RectF cursorRect = new RectF();
+    private int maxVisibleMarksCount;
 
     Drawer(HorizontalWheelView view, AttributeSet attrs) {
         this.view = view;
         readAttrs(attrs);
-        gaps = new float[maxVisibleMarks];
-        shades = new float[maxVisibleMarks];
-        scales = new float[maxVisibleMarks];
         initDpSizes();
     }
 
     private void readAttrs(AttributeSet attrs) {
         TypedArray a = view.getContext().obtainStyledAttributes(attrs, R.styleable.HorizontalWheelView);
-        maxVisibleMarks = a.getInt(R.styleable.HorizontalWheelView_maxVisibleMarks, DEFAULT_MAX_VISIBLE_MARKS);
+        int marksCount = a.getInt(R.styleable.HorizontalWheelView_marksCount, DEFAULT_MARKS_COUNT);
+        setMarksCount(marksCount);
         normalColor = a.getColor(R.styleable.HorizontalWheelView_normalColor, DEFAULT_NORMAL_COLOR);
         activeColor = a.getColor(R.styleable.HorizontalWheelView_activeColor, DEFAULT_ACTIVE_COLOR);
         showActiveRange = a.getBoolean(R.styleable.HorizontalWheelView_showActiveRange, DEFAULT_SHOW_ACTIVE_RANGE);
         a.recycle();
-        validateMaxVisibleMarks(maxVisibleMarks);
-    }
-
-    private void validateMaxVisibleMarks(int maxVisibleMarks) {
-        if (maxVisibleMarks < 3) {
-            throw new IllegalArgumentException("maxVisibleMarks must be >= 3");
-        }
-        if (maxVisibleMarks % 2 == 0) {
-            throw new IllegalArgumentException("maxVisibleMarks must be an odd number");
-        }
     }
 
     private void initDpSizes() {
@@ -82,15 +71,12 @@ class Drawer {
         return Utils.convertToPx(dp, view.getResources());
     }
 
-    void onDraw(Canvas canvas) {
-        double step = PI / (maxVisibleMarks - 1);
-        double offset = (2 * PI - view.getRadiansAngle()) % step;
-        setupGaps(step, offset);
-        setupShadesAndScales(step, offset);
-        int zeroIndex = calcZeroIndex(step);
-        setupColorSwitches(zeroIndex);
-        drawMarks(canvas, zeroIndex);
-        drawCursor(canvas);
+    void setMarksCount(int marksCount) {
+        this.marksCount = marksCount;
+        maxVisibleMarksCount = (marksCount / 2) + 1;
+        gaps = new float[maxVisibleMarksCount];
+        shades = new float[maxVisibleMarksCount];
+        scales = new float[maxVisibleMarksCount];
     }
 
     void onSizeChanged() {
@@ -109,18 +95,36 @@ class Drawer {
         cursorRect.right = cursorRect.left + cursorWidth;
     }
 
-    private void setupGaps(double step, double offset) {
-        float sum = 0;
-        double a = offset + step / 2;
-        for (int i = 1; i < gaps.length - 1; i++) {
-            gaps[i] = (float) sin(a);
-            sum += gaps[i];
-            a += step;
+    void onDraw(Canvas canvas) {
+        double step = 2 * PI / marksCount;
+        double offset = (PI / 2 - view.getRadiansAngle()) % step;
+        if (offset < 0) {
+            offset += step;
         }
+        setupGaps(step, offset);
+        setupShadesAndScales(step, offset);
+        int zeroIndex = calcZeroIndex(step);
+        setupColorSwitches(step, offset, zeroIndex);
+        drawMarks(canvas, zeroIndex);
+        drawCursor(canvas);
+    }
+
+    private void setupGaps(double step, double offset) {
         gaps[0] = (float) sin(offset / 2);
-        float lastGap = (float) sin((PI - (step - offset) / 2));
-        sum += gaps[0] + lastGap;
-        gaps[gaps.length - 1] = offset == 0 ? lastGap : -1;
+        float sum = gaps[0];
+        double angle = offset;
+        int n = 1;
+        while (angle + step <= PI) {
+            gaps[n] = (float) sin(angle + step / 2);
+            sum += gaps[n];
+            angle += step;
+            n++;
+        }
+        float lastGap = (float) sin((PI + angle) / 2);
+        sum += lastGap;
+        if (n != gaps.length) {
+            gaps[gaps.length - 1] = -1;
+        }
         float k = view.getWidth() / sum;
         for (int i = 0; i < gaps.length; i++) {
             if (gaps[i] != -1) {
@@ -131,7 +135,7 @@ class Drawer {
 
     private void setupShadesAndScales(double step, double offset) {
         double angle = offset;
-        for (int i = 0; i < maxVisibleMarks; i++) {
+        for (int i = 0; i < maxVisibleMarksCount; i++) {
             double sin = sin(angle);
             shades[i] = (float) (1 - SHADE_RANGE * (1 - sin));
             scales[i] = (float) (1 - SCALE_RANGE * (1 - sin));
@@ -148,30 +152,30 @@ class Drawer {
         return (int) ((PI - normalizedAngle) / step);
     }
 
-    private void setupColorSwitches(int zeroIndex) {
+    private void setupColorSwitches(double step, double offset, int zeroIndex) {
         if (!showActiveRange) {
             return;
         }
         double angle = view.getRadiansAngle();
-        int visibleMarks = angle == 0 ? maxVisibleMarks : maxVisibleMarks - 1;
-        double middle = (visibleMarks - 1) / 2d;
-        int middleCeil = (int) Math.ceil(middle);
-        int middleFloor = (int) Math.floor(middle);
+        int afterMiddleIndex = 0;
+        if (offset < PI / 2) {
+            afterMiddleIndex = (int) ((PI / 2 - offset) / step) + 1;
+        }
         if (angle > 3 * PI / 2) {
             colorSwitches[0] = 0;
-            colorSwitches[1] = middleFloor + 1;
+            colorSwitches[1] = afterMiddleIndex;
             colorSwitches[2] = zeroIndex;
         } else if (angle >= 0) {
             colorSwitches[0] = Math.max(0, zeroIndex);
-            colorSwitches[1] = middleFloor + 1;
+            colorSwitches[1] = afterMiddleIndex;
             colorSwitches[2] = -1;
         } else if (angle < -3 * PI / 2) {
             colorSwitches[0] = 0;
-            colorSwitches[1] = zeroIndex + 1;
-            colorSwitches[2] = middleCeil;
+            colorSwitches[1] = zeroIndex;
+            colorSwitches[2] = afterMiddleIndex;
         } else if (angle < 0) {
-            colorSwitches[0] = middleCeil;
-            colorSwitches[1] = zeroIndex + 1;
+            colorSwitches[0] = afterMiddleIndex;
+            colorSwitches[1] = zeroIndex;
             colorSwitches[2] = -1;
         }
     }

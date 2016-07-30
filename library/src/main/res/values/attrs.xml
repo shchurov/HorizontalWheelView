@@ -5,5 +5,7 @@
         <attr name="normalColor" format="color"/>
         <attr name="activeColor" format="color"/>
         <attr name="showActiveRange" format="boolean"/>
+        <attr name="endLock" format="boolean"/>
+        <attr name="onlyPositiveValues" format="boolean"/>
     </declare-styleable>
 </resources>

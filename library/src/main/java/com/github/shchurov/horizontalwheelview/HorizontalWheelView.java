@@ -1,6 +1,7 @@
 package com.github.shchurov.horizontalwheelview;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.os.Parcelable;
 import android.util.AttributeSet;
@@ -13,6 +14,8 @@ public class HorizontalWheelView extends View {
 
     private static final int DP_DEFAULT_WIDTH = 200;
     private static final int DP_DEFAULT_HEIGHT = 32;
+    private static final boolean DEFAULT_END_LOCK = false;
+    private static final boolean DEFAULT_ONLY_POSITIVE_VALUES = false;
 
     public static final int SCROLL_STATE_IDLE = 0;
     public static final int SCROLL_STATE_DRAGGING = 1;
@@ -22,12 +25,22 @@ public class HorizontalWheelView extends View {
     private TouchHandler touchHandler;
     private double angle;
     private boolean onlyPositiveValues;
+    private boolean endLock;
     private Listener listener;
 
     public HorizontalWheelView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        readAttrs(attrs);
         drawer = new Drawer(this, attrs);
         touchHandler = new TouchHandler(this);
+    }
+
+    private void readAttrs(AttributeSet attrs) {
+        TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.HorizontalWheelView);
+        endLock = a.getBoolean(R.styleable.HorizontalWheelView_endLock, DEFAULT_END_LOCK);
+        onlyPositiveValues = a.getBoolean(R.styleable.HorizontalWheelView_onlyPositiveValues,
+                DEFAULT_ONLY_POSITIVE_VALUES);
+        a.recycle();
     }
 
     public void setListener(Listener listener) {
@@ -36,7 +49,9 @@ public class HorizontalWheelView extends View {
     }
 
     public void setRadiansAngle(double radians) {
-        angle = radians % (2 * PI);
+        if (!checkEndLock(radians)) {
+            angle = radians % (2 * PI);
+        }
         if (onlyPositiveValues && angle < 0) {
             angle += 2 * PI;
         }
@@ -44,6 +59,27 @@ public class HorizontalWheelView extends View {
         if (listener != null) {
             listener.onRotationChanged(this.angle);
         }
+    }
+
+    private boolean checkEndLock(double radians) {
+        if (!endLock) {
+            return false;
+        }
+        boolean hit = false;
+        if (radians >= 2 * PI) {
+            angle = Math.nextAfter(2 * PI, Double.NEGATIVE_INFINITY);
+            hit = true;
+        } else if (onlyPositiveValues && radians < 0) {
+            angle = 0;
+            hit = true;
+        } else if (radians <= -2 * PI) {
+            angle = Math.nextAfter(-2 * PI, Double.POSITIVE_INFINITY);
+            hit = true;
+        }
+        if (hit) {
+            touchHandler.cancelFling();
+        }
+        return hit;
     }
 
     public void setDegreesAngle(double degrees) {
@@ -70,6 +106,10 @@ public class HorizontalWheelView extends View {
 
     public void setOnlyPositiveValues(boolean onlyPositiveValues) {
         this.onlyPositiveValues = onlyPositiveValues;
+    }
+
+    public void setEndLock(boolean lock) {
+        this.endLock = lock;
     }
 
     public void setMarksCount(int marksCount) {

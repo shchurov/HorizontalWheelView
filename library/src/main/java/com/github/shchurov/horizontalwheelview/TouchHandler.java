@@ -44,9 +44,7 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
 
     @Override
     public boolean onDown(MotionEvent e) {
-        if (scrollAnimator != null && scrollAnimator.isRunning()) {
-            scrollAnimator.cancel();
-        }
+        cancelFling();
         return true;
     }
 
@@ -97,5 +95,11 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
             updateScrollStateIfRequired(SCROLL_STATE_IDLE);
         }
     };
+
+    void cancelFling() {
+        if (scrollAnimator != null && scrollAnimator.isRunning()) {
+            scrollAnimator.cancel();
+        }
+    }
 
 }

@@ -117,6 +117,11 @@ public class HorizontalWheelView extends View {
         invalidate();
     }
 
+    public void setShowActiveRange(boolean show) {
+        drawer.setShowActiveRange(show);
+        invalidate();
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return touchHandler.onTouchEvent(event);

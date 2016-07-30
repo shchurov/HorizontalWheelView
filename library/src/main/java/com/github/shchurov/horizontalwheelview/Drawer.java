@@ -7,6 +7,8 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 
+import java.util.Arrays;
+
 import static java.lang.Math.PI;
 import static java.lang.Math.sin;
 
@@ -77,6 +79,10 @@ class Drawer {
         gaps = new float[maxVisibleMarksCount];
         shades = new float[maxVisibleMarksCount];
         scales = new float[maxVisibleMarksCount];
+    }
+
+    void setShowActiveRange(boolean show) {
+        showActiveRange = show;
     }
 
     void onSizeChanged() {
@@ -154,6 +160,7 @@ class Drawer {
 
     private void setupColorSwitches(double step, double offset, int zeroIndex) {
         if (!showActiveRange) {
+            Arrays.fill(colorSwitches, -1);
             return;
         }
         double angle = view.getRadiansAngle();

@@ -101,6 +101,10 @@ class Drawer {
         cursorRect.right = cursorRect.left + cursorWidth;
     }
 
+    int getMarksCount() {
+        return marksCount;
+    }
+
     void onDraw(Canvas canvas) {
         double step = 2 * PI / marksCount;
         double offset = (PI / 2 - view.getRadiansAngle()) % step;

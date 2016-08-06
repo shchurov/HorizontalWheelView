@@ -32,7 +32,7 @@ public class HorizontalWheelView extends View {
         super(context, attrs);
         readAttrs(attrs);
         drawer = new Drawer(this, attrs);
-        touchHandler = new TouchHandler(this);
+        touchHandler = new TouchHandler(this, attrs);
     }
 
     private void readAttrs(AttributeSet attrs) {
@@ -170,6 +170,10 @@ public class HorizontalWheelView extends View {
         super.onRestoreInstanceState(ss.getSuperState());
         angle = ss.angle;
         invalidate();
+    }
+
+    int getMarksCount() {
+        return drawer.getMarksCount();
     }
 
     public static class Listener {

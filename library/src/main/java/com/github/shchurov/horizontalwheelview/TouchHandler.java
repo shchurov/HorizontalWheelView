@@ -3,6 +3,8 @@ package com.github.shchurov.horizontalwheelview;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.content.res.TypedArray;
+import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.animation.DecelerateInterpolator;
@@ -11,23 +13,33 @@ import android.view.animation.Interpolator;
 import static com.github.shchurov.horizontalwheelview.HorizontalWheelView.SCROLL_STATE_DRAGGING;
 import static com.github.shchurov.horizontalwheelview.HorizontalWheelView.SCROLL_STATE_IDLE;
 import static com.github.shchurov.horizontalwheelview.HorizontalWheelView.SCROLL_STATE_SETTLING;
+import static java.lang.Math.PI;
 
 class TouchHandler extends GestureDetector.SimpleOnGestureListener {
 
     private static final float SCROLL_ANGLE_MULTIPLIER = 0.002f;
-    private static final float FLING_ANGLE_MULTIPLIER = 0.0004f;
-    private static final float FLING_DURATION_MULTIPLIER = 0.2f;
-    private static final Interpolator INTERPOLATOR = new DecelerateInterpolator(1.4f);
+    private static final float FLING_ANGLE_MULTIPLIER = 0.0002f;
+    private static final int SETTLING_DURATION_MULTIPLIER = 1000;
+    private static final boolean DEFAULT_SNAP_TO_MARKS = false;
+    private static final Interpolator INTERPOLATOR = new DecelerateInterpolator(2.5f);
 
     private HorizontalWheelView view;
     private HorizontalWheelView.Listener listener;
     private GestureDetector gestureDetector;
-    private ValueAnimator scrollAnimator;
+    private ValueAnimator settlingAnimator;
+    private boolean snapToMarks;
     private int scrollState = SCROLL_STATE_IDLE;
 
-    TouchHandler(HorizontalWheelView view) {
+    TouchHandler(HorizontalWheelView view, AttributeSet attrs) {
         this.view = view;
+        readAttrs(attrs);
         gestureDetector = new GestureDetector(view.getContext(), this);
+    }
+
+    private void readAttrs(AttributeSet attrs) {
+        TypedArray a = view.getContext().obtainStyledAttributes(attrs, R.styleable.HorizontalWheelView);
+        snapToMarks = a.getBoolean(R.styleable.HorizontalWheelView_snapToMarks, DEFAULT_SNAP_TO_MARKS);
+        a.recycle();
     }
 
     void setListener(HorizontalWheelView.Listener listener) {
@@ -36,8 +48,14 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
 
     boolean onTouchEvent(MotionEvent event) {
         gestureDetector.onTouchEvent(event);
-        if (event.getActionMasked() == MotionEvent.ACTION_UP && scrollState != SCROLL_STATE_SETTLING) {
-            updateScrollStateIfRequired(SCROLL_STATE_IDLE);
+        int action = event.getActionMasked();
+        if (scrollState != SCROLL_STATE_SETTLING
+                && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)) {
+            if (snapToMarks) {
+                playSettlingAnimation(findNearestMarkAngle(view.getRadiansAngle()));
+            } else {
+                updateScrollStateIfRequired(SCROLL_STATE_IDLE);
+            }
         }
         return true;
     }
@@ -46,6 +64,12 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
     public boolean onDown(MotionEvent e) {
         cancelFling();
         return true;
+    }
+
+    void cancelFling() {
+        if (scrollState == SCROLL_STATE_SETTLING) {
+            settlingAnimator.cancel();
+        }
     }
 
     @Override
@@ -65,21 +89,29 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        runFlingAnimation(velocityX);
-        updateScrollStateIfRequired(SCROLL_STATE_SETTLING);
+        double endAngle = view.getRadiansAngle() - velocityX * FLING_ANGLE_MULTIPLIER;
+        if (snapToMarks) {
+            endAngle = (float) findNearestMarkAngle(endAngle);
+        }
+        playSettlingAnimation(endAngle);
         return true;
     }
 
-    private void runFlingAnimation(float velocity) {
-        int duration = (int) Math.abs(velocity * FLING_DURATION_MULTIPLIER);
-        float startAngle = (float) view.getRadiansAngle();
-        float endAngle = startAngle - velocity * FLING_ANGLE_MULTIPLIER;
-        scrollAnimator = ValueAnimator.ofFloat(startAngle, endAngle)
+    private double findNearestMarkAngle(double angle) {
+        double step = 2 * PI / view.getMarksCount();
+        return Math.round(angle / step) * step;
+    }
+
+    private void playSettlingAnimation(double endAngle) {
+        updateScrollStateIfRequired(SCROLL_STATE_SETTLING);
+        double startAngle = view.getRadiansAngle();
+        int duration = (int) (Math.abs(startAngle - endAngle) * SETTLING_DURATION_MULTIPLIER);
+        settlingAnimator = ValueAnimator.ofFloat((float) startAngle, (float) endAngle)
                 .setDuration(duration);
-        scrollAnimator.setInterpolator(INTERPOLATOR);
-        scrollAnimator.addUpdateListener(flingAnimatorListener);
-        scrollAnimator.addListener(animatorListener);
-        scrollAnimator.start();
+        settlingAnimator.setInterpolator(INTERPOLATOR);
+        settlingAnimator.addUpdateListener(flingAnimatorListener);
+        settlingAnimator.addListener(animatorListener);
+        settlingAnimator.start();
     }
 
     private ValueAnimator.AnimatorUpdateListener flingAnimatorListener = new ValueAnimator.AnimatorUpdateListener() {
@@ -95,11 +127,5 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
             updateScrollStateIfRequired(SCROLL_STATE_IDLE);
         }
     };
-
-    void cancelFling() {
-        if (scrollAnimator != null && scrollAnimator.isRunning()) {
-            scrollAnimator.cancel();
-        }
-    }
 
 }

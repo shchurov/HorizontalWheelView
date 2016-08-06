@@ -7,5 +7,6 @@
         <attr name="showActiveRange" format="boolean"/>
         <attr name="endLock" format="boolean"/>
         <attr name="onlyPositiveValues" format="boolean"/>
+        <attr name="snapToMarks" format="boolean"/>
     </declare-styleable>
 </resources>

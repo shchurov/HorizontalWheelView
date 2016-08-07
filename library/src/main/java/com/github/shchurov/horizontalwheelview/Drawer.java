@@ -1,11 +1,9 @@
 package com.github.shchurov.horizontalwheelview;
 
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.util.AttributeSet;
 
 import java.util.Arrays;
 
@@ -14,10 +12,6 @@ import static java.lang.Math.sin;
 
 class Drawer {
 
-    private static final int DEFAULT_MARKS_COUNT = 40;
-    private static final int DEFAULT_NORMAL_COLOR = 0xffffffff;
-    private static final int DEFAULT_ACTIVE_COLOR = 0xff54acf0;
-    private static final boolean DEFAULT_SHOW_ACTIVE_RANGE = true;
     private static final int DP_CURSOR_CORNERS_RADIUS = 1;
     private static final int DP_NORMAL_MARK_WIDTH = 1;
     private static final int DP_ZERO_MARK_WIDTH = 2;
@@ -47,20 +41,9 @@ class Drawer {
     private RectF cursorRect = new RectF();
     private int maxVisibleMarksCount;
 
-    Drawer(HorizontalWheelView view, AttributeSet attrs) {
+    Drawer(HorizontalWheelView view) {
         this.view = view;
-        readAttrs(attrs);
         initDpSizes();
-    }
-
-    private void readAttrs(AttributeSet attrs) {
-        TypedArray a = view.getContext().obtainStyledAttributes(attrs, R.styleable.HorizontalWheelView);
-        int marksCount = a.getInt(R.styleable.HorizontalWheelView_marksCount, DEFAULT_MARKS_COUNT);
-        setMarksCount(marksCount);
-        normalColor = a.getColor(R.styleable.HorizontalWheelView_normalColor, DEFAULT_NORMAL_COLOR);
-        activeColor = a.getColor(R.styleable.HorizontalWheelView_activeColor, DEFAULT_ACTIVE_COLOR);
-        showActiveRange = a.getBoolean(R.styleable.HorizontalWheelView_showActiveRange, DEFAULT_SHOW_ACTIVE_RANGE);
-        a.recycle();
     }
 
     private void initDpSizes() {
@@ -79,6 +62,14 @@ class Drawer {
         gaps = new float[maxVisibleMarksCount];
         shades = new float[maxVisibleMarksCount];
         scales = new float[maxVisibleMarksCount];
+    }
+
+    void setNormalColor(int color) {
+        normalColor = color;
+    }
+
+    void setActiveColor(int color) {
+        activeColor = color;
     }
 
     void setShowActiveRange(boolean show) {

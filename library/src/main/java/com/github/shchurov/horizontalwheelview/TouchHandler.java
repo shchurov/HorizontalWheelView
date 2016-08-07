@@ -3,8 +3,6 @@ package com.github.shchurov.horizontalwheelview;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.content.res.TypedArray;
-import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.animation.DecelerateInterpolator;
@@ -20,7 +18,6 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
     private static final float SCROLL_ANGLE_MULTIPLIER = 0.002f;
     private static final float FLING_ANGLE_MULTIPLIER = 0.0002f;
     private static final int SETTLING_DURATION_MULTIPLIER = 1000;
-    private static final boolean DEFAULT_SNAP_TO_MARKS = false;
     private static final Interpolator INTERPOLATOR = new DecelerateInterpolator(2.5f);
 
     private HorizontalWheelView view;
@@ -30,20 +27,17 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
     private boolean snapToMarks;
     private int scrollState = SCROLL_STATE_IDLE;
 
-    TouchHandler(HorizontalWheelView view, AttributeSet attrs) {
+    TouchHandler(HorizontalWheelView view) {
         this.view = view;
-        readAttrs(attrs);
         gestureDetector = new GestureDetector(view.getContext(), this);
-    }
-
-    private void readAttrs(AttributeSet attrs) {
-        TypedArray a = view.getContext().obtainStyledAttributes(attrs, R.styleable.HorizontalWheelView);
-        snapToMarks = a.getBoolean(R.styleable.HorizontalWheelView_snapToMarks, DEFAULT_SNAP_TO_MARKS);
-        a.recycle();
     }
 
     void setListener(HorizontalWheelView.Listener listener) {
         this.listener = listener;
+    }
+
+    void setSnapToMarks(boolean snapToMarks) {
+        this.snapToMarks = snapToMarks;
     }
 
     boolean onTouchEvent(MotionEvent event) {

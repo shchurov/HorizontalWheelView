@@ -6,12 +6,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.github.shchurov.horizontalwheelview.HorizontalWheelView;
+import com.github.shchurov.horizontalwheelview.VerticalWheelView;
 
 import java.util.Locale;
 
 public class SampleActivity extends Activity {
 
     private HorizontalWheelView horizontalWheelView;
+    private VerticalWheelView verticalWheelView;
     private TextView tvAngle;
     private ImageView ivRocket;
 
@@ -26,6 +28,7 @@ public class SampleActivity extends Activity {
 
     private void initViews() {
         horizontalWheelView = (HorizontalWheelView) findViewById(R.id.horizontalWheelView);
+        verticalWheelView = (VerticalWheelView) findViewById(R.id.verticalWheelView);
         tvAngle = (TextView) findViewById(R.id.tvAngle);
         ivRocket = (ImageView) findViewById(R.id.ivRocket);
     }
@@ -34,6 +37,14 @@ public class SampleActivity extends Activity {
         horizontalWheelView.setListener(new HorizontalWheelView.Listener() {
             @Override
             public void onRotationChanged(double radians) {
+                verticalWheelView.setRadiansAngle(radians);
+                updateUi();
+            }
+        });
+        verticalWheelView.setListener(new HorizontalWheelView.Listener() {
+            @Override
+            public void onRotationChanged(double radians) {
+                horizontalWheelView.setRadiansAngle(radians);
                 updateUi();
             }
         });

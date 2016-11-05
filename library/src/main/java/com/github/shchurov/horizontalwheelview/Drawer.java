@@ -41,6 +41,8 @@ class Drawer {
     private RectF cursorRect = new RectF();
     private int maxVisibleMarksCount;
 
+    private boolean isHorizontal = true;
+
     Drawer(HorizontalWheelView view) {
         this.view = view;
         initDpSizes();
@@ -77,7 +79,12 @@ class Drawer {
     }
 
     void onSizeChanged() {
+        if(isHorizontal) {
         viewportHeight = view.getHeight() - view.getPaddingTop() - view.getPaddingBottom();
+        }
+        else{
+            viewportHeight = view.getWidth() - view.getPaddingLeft() - view.getPaddingRight();
+        }
         normalMarkHeight = (int) (viewportHeight * NORMAL_MARK_RELATIVE_HEIGHT);
         zeroMarkHeight = (int) (viewportHeight * ZERO_MARK_RELATIVE_HEIGHT);
         setupCursorRect();
@@ -88,7 +95,12 @@ class Drawer {
         cursorRect.top = view.getPaddingTop() + (viewportHeight - cursorHeight) / 2;
         cursorRect.bottom = cursorRect.top + cursorHeight;
         int cursorWidth = convertToPx(DP_CURSOR_WIDTH);
+        if(isHorizontal) {
         cursorRect.left = (view.getWidth() - cursorWidth) / 2;
+        }
+        else {
+            cursorRect.left = (view.getHeight() - cursorWidth) / 2;
+        }
         cursorRect.right = cursorRect.left + cursorWidth;
     }
 
@@ -126,7 +138,14 @@ class Drawer {
         if (n != gaps.length) {
             gaps[gaps.length - 1] = -1;
         }
-        float k = view.getWidth() / sum;
+
+        float k;
+        if(isHorizontal) {
+            k = view.getWidth() / sum;
+        }
+        else {
+            k = view.getHeight() / sum;
+        }
         for (int i = 0; i < gaps.length; i++) {
             if (gaps[i] != -1) {
                 gaps[i] *= k;
@@ -234,4 +253,7 @@ class Drawer {
         canvas.drawRoundRect(cursorRect, cursorCornersRadius, cursorCornersRadius, paint);
     }
 
+    public void setHorizontal(boolean horizontal) {
+        isHorizontal = horizontal;
+    }
 }

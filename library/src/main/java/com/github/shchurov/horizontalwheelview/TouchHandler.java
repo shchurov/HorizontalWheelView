@@ -26,6 +26,7 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
     private ValueAnimator settlingAnimator;
     private boolean snapToMarks;
     private int scrollState = SCROLL_STATE_IDLE;
+    private boolean isHorizontal = true;
 
     TouchHandler(HorizontalWheelView view) {
         this.view = view;
@@ -68,7 +69,13 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        double newAngle = view.getRadiansAngle() + distanceX * SCROLL_ANGLE_MULTIPLIER;
+        double newAngle;
+        if(isHorizontal){
+            newAngle = view.getRadiansAngle() + distanceX * SCROLL_ANGLE_MULTIPLIER;
+        }
+        else{
+            newAngle = view.getRadiansAngle() - distanceY * SCROLL_ANGLE_MULTIPLIER;
+        }
         view.setRadiansAngle(newAngle);
         updateScrollStateIfRequired(SCROLL_STATE_DRAGGING);
         return true;
@@ -83,7 +90,13 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        double endAngle = view.getRadiansAngle() - velocityX * FLING_ANGLE_MULTIPLIER;
+        double endAngle;
+        if(isHorizontal) {
+            endAngle = view.getRadiansAngle() - velocityX * FLING_ANGLE_MULTIPLIER;
+        }
+        else{
+            endAngle = view.getRadiansAngle() + velocityY * FLING_ANGLE_MULTIPLIER;
+        }
         if (snapToMarks) {
             endAngle = (float) findNearestMarkAngle(endAngle);
         }
@@ -122,4 +135,7 @@ class TouchHandler extends GestureDetector.SimpleOnGestureListener {
         }
     };
 
+    public void setHorizontal(boolean b) {
+        isHorizontal = b;
+    }
 }

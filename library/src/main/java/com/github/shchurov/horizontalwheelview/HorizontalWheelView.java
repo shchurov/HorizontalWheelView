@@ -40,6 +40,11 @@ public class HorizontalWheelView extends View {
         readAttrs(attrs);
     }
 
+    public void setHorizontal(boolean horizontal) {
+        this.touchHandler.setHorizontal(horizontal);
+        drawer.setHorizontal(horizontal);
+    }
+
     private void readAttrs(AttributeSet attrs) {
         TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.HorizontalWheelView);
         int marksCount = a.getInt(R.styleable.HorizontalWheelView_marksCount, DEFAULT_MARKS_COUNT);
@@ -66,7 +71,14 @@ public class HorizontalWheelView extends View {
 
     public void setRadiansAngle(double radians) {
         if (!checkEndLock(radians)) {
-            angle = radians % (2 * PI);
+            double newAngle = radians % (2 * PI);
+            if(newAngle == angle){
+				//If angle was not changed do nothing
+                return;
+            }
+            else{
+                angle = newAngle;
+            }
         }
         if (onlyPositiveValues && angle < 0) {
             angle += 2 * PI;

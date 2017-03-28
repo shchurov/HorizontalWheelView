@@ -4,7 +4,7 @@ Custom view for user input that models horizontal wheel controller.
 
 ![demo gif](http://i.giphy.com/vH1qSxcwBBOiQ.gif)
 
-Integration
+Installation
 -------
 
 Add jitpack.io repository to your root build.gradle:
